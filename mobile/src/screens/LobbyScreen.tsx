@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityInd
 import { useTripStore } from '../store/useTripStore';
 
 // API URL from environment variable (defaults to localhost for development)
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.13:3000';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://kaafla-production.up.railway.app';
 const TRIP_API = `${API_URL}/trip`;
 
 export const LobbyScreen = ({ navigation }: any) => {

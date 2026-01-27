@@ -142,7 +142,7 @@ class MQTTClientService {
     private startHttpPolling(): void {
         if (this.httpPollInterval) return;
 
-        const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.13:3000';
+        const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://kaafla-production.up.railway.app';
 
         this.httpPollInterval = setInterval(async () => {
             if (!this.tripCode) return;
