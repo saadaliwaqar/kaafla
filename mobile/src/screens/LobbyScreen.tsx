@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, StatusBar } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
+import { Ionicons } from '@expo/vector-icons';
 import { useTripStore } from '../store/useTripStore';
+import { Colors, Layout } from '../../constants/theme';
 
-// API URL from environment variable (defaults to localhost for development)
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://kaafla-production.up.railway.app';
 const TRIP_API = `${API_URL}/trip`;
 
@@ -12,6 +16,7 @@ export const LobbyScreen = ({ navigation }: any) => {
     const { userId, setTrip } = useTripStore();
 
     const createTrip = async () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         setLoading(true);
         try {
             const res = await fetch(`${TRIP_API}/create`, {
@@ -28,7 +33,6 @@ export const LobbyScreen = ({ navigation }: any) => {
             }
         } catch (e) {
             Alert.alert('Error', 'Network request failed');
-            console.error(e);
         } finally {
             setLoading(false);
         }
@@ -39,6 +43,7 @@ export const LobbyScreen = ({ navigation }: any) => {
             Alert.alert('Invalid Code', 'Please enter a 6-digit code');
             return;
         }
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         setLoading(true);
         try {
             const res = await fetch(`${TRIP_API}/join`, {
@@ -55,7 +60,6 @@ export const LobbyScreen = ({ navigation }: any) => {
             }
         } catch (e) {
             Alert.alert('Error', 'Network request failed');
-            console.error(e);
         } finally {
             setLoading(false);
         }
@@ -63,30 +67,65 @@ export const LobbyScreen = ({ navigation }: any) => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>KAAFLA</Text>
-            <Text style={styles.subtitle}>Convoy Tracking</Text>
+            <StatusBar barStyle="light-content" />
 
-            <TouchableOpacity style={styles.createButton} onPress={createTrip} disabled={loading}>
-                {loading ? <ActivityIndicator color="#000" /> : <Text style={styles.btnText}>CREATE NEW CONVOY</Text>}
-            </TouchableOpacity>
-
-            <View style={styles.divider}>
-                <Text style={styles.dividerText}>OR JOIN EXISTING</Text>
+            {/* Logo Area */}
+            <View style={styles.logoContainer}>
+                <Ionicons name="car-sport" size={64} color={Colors.dark.accent} />
+                <Text style={styles.title}>KAAFLA</Text>
+                <Text style={styles.subtitle}>Convoy Tracking System</Text>
             </View>
 
-            <TextInput
-                style={styles.input}
-                placeholder="ENTER 6-DIGIT CODE"
-                placeholderTextColor="#666"
-                value={code}
-                onChangeText={setCode}
-                maxLength={6}
-                autoCapitalize="characters"
-            />
-
-            <TouchableOpacity style={styles.joinButton} onPress={joinTrip} disabled={loading}>
-                <Text style={styles.btnTextWhite}>JOIN CONVOY</Text>
+            {/* Create Button */}
+            <TouchableOpacity onPress={createTrip} disabled={loading} activeOpacity={0.8}>
+                <LinearGradient
+                    colors={[Colors.dark.accent, '#FFA500']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.createButton}
+                >
+                    {loading ? (
+                        <ActivityIndicator color="#000" />
+                    ) : (
+                        <>
+                            <Ionicons name="add-circle" size={24} color="#000" />
+                            <Text style={styles.createBtnText}>CREATE NEW CONVOY</Text>
+                        </>
+                    )}
+                </LinearGradient>
             </TouchableOpacity>
+
+            {/* Divider */}
+            <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>OR JOIN</Text>
+                <View style={styles.dividerLine} />
+            </View>
+
+            {/* Join Section */}
+            <BlurView intensity={40} tint="dark" style={styles.joinCard}>
+                <TextInput
+                    style={styles.input}
+                    placeholder="ENTER 6-DIGIT CODE"
+                    placeholderTextColor={Colors.dark.textDim}
+                    value={code}
+                    onChangeText={(text) => setCode(text.toUpperCase())}
+                    maxLength={6}
+                    autoCapitalize="characters"
+                    keyboardType="default"
+                />
+                <TouchableOpacity
+                    style={[styles.joinButton, code.length !== 6 && styles.joinButtonDisabled]}
+                    onPress={joinTrip}
+                    disabled={loading || code.length !== 6}
+                >
+                    <Ionicons name="enter" size={20} color="#FFF" />
+                    <Text style={styles.joinBtnText}>JOIN CONVOY</Text>
+                </TouchableOpacity>
+            </BlurView>
+
+            {/* Footer */}
+            <Text style={styles.footer}>Stay together. Drive safe.</Text>
         </View>
     );
 };
@@ -94,64 +133,103 @@ export const LobbyScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#121212',
+        backgroundColor: Colors.dark.background,
         justifyContent: 'center',
-        padding: 20,
+        padding: 24,
+    },
+    logoContainer: {
+        alignItems: 'center',
+        marginBottom: 48,
     },
     title: {
         fontSize: 48,
-        fontWeight: 'bold',
-        color: '#FFD700', // Gold
-        textAlign: 'center',
-        marginBottom: 10,
+        fontWeight: '900',
+        color: Colors.dark.accent,
+        letterSpacing: 8,
+        marginTop: 16,
     },
     subtitle: {
-        fontSize: 18,
-        color: '#888',
-        textAlign: 'center',
-        marginBottom: 50,
+        fontSize: 14,
+        color: Colors.dark.textDim,
+        marginTop: 8,
+        letterSpacing: 2,
     },
     createButton: {
-        backgroundColor: '#FFD700',
-        padding: 20,
-        borderRadius: 12,
+        flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 30,
+        justifyContent: 'center',
+        padding: 20,
+        borderRadius: Layout.radius.m,
+        gap: 12,
     },
-    btnText: {
-        fontSize: 18,
-        fontWeight: 'bold',
+    createBtnText: {
+        fontSize: 16,
+        fontWeight: '800',
         color: '#000',
-    },
-    btnTextWhite: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#FFF',
+        letterSpacing: 1,
     },
     divider: {
+        flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 30,
+        marginVertical: 32,
+    },
+    dividerLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: Colors.dark.border,
     },
     dividerText: {
-        color: '#555',
-        fontWeight: 'bold',
+        color: Colors.dark.textDim,
+        fontWeight: '700',
+        marginHorizontal: 16,
+        fontSize: 12,
+        letterSpacing: 2,
+    },
+    joinCard: {
+        borderRadius: Layout.radius.l,
+        overflow: 'hidden',
+        padding: 20,
+        borderWidth: 1,
+        borderColor: Colors.dark.border,
     },
     input: {
-        backgroundColor: '#1E1E1E',
+        backgroundColor: 'rgba(255,255,255,0.05)',
         color: '#FFF',
         padding: 20,
-        borderRadius: 12,
+        borderRadius: Layout.radius.m,
         fontSize: 24,
         textAlign: 'center',
-        marginBottom: 20,
-        letterSpacing: 4,
+        marginBottom: 16,
+        letterSpacing: 8,
+        fontWeight: '700',
+        borderWidth: 1,
+        borderColor: Colors.dark.border,
     },
     joinButton: {
-        backgroundColor: '#333',
-        padding: 20,
-        borderRadius: 12,
+        flexDirection: 'row',
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#555',
+        justifyContent: 'center',
+        backgroundColor: Colors.dark.primary,
+        padding: 18,
+        borderRadius: Layout.radius.m,
+        gap: 10,
+    },
+    joinButtonDisabled: {
+        backgroundColor: Colors.dark.surface,
+        opacity: 0.5,
+    },
+    joinBtnText: {
+        fontSize: 14,
+        fontWeight: '800',
+        color: '#FFF',
+        letterSpacing: 1,
+    },
+    footer: {
+        textAlign: 'center',
+        color: Colors.dark.textDim,
+        marginTop: 48,
+        fontSize: 12,
+        fontStyle: 'italic',
     },
 });
+
