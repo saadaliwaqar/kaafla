@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTripStore } from '../store/useTripStore';
 import { useLocation } from '../context/LocationContext';
 import { CarMarker } from '../components/CarMarker';
+import { LeaderPhoneModal } from '../components/LeaderPhoneModal';
 import { mqttClientService } from '../services/MQTTClientService';
 import { SMSHandler } from '../services/SMSHandler';
 import { Colors, Layout } from '../../constants/theme';
@@ -40,8 +41,9 @@ export const MapScreen = ({ navigation }: any) => {
         getGroupSpeed,
     } = useLocation();
 
-    // Local state for copy feedback
+    // Local state for copy feedback and modals
     const [copied, setCopied] = useState(false);
+    const [showPhoneModal, setShowPhoneModal] = useState(false);
 
     // 1. Start Tracking & Connect to MQTT
     useEffect(() => {
@@ -189,7 +191,7 @@ export const MapScreen = ({ navigation }: any) => {
                 </View>
             )}
 
-            {/* Top Bar: Convoy Code */}
+            {/* Top Bar: Convoy Code + Settings */}
             <BlurView intensity={80} tint="dark" style={styles.topBar}>
                 <View>
                     <Text style={styles.label}>CONVOY CODE</Text>
@@ -198,11 +200,22 @@ export const MapScreen = ({ navigation }: any) => {
                         <Ionicons name={copied ? "checkmark-circle" : "copy-outline"} size={16} color={Colors.dark.primary} style={{ marginLeft: 8 }} />
                     </TouchableOpacity>
                 </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={styles.label}>MEMBERS</Text>
-                    <Text style={styles.memberCount}>{memberCount}</Text>
+                <View style={styles.topBarRight}>
+                    <View style={{ alignItems: 'flex-end' }}>
+                        <Text style={styles.label}>MEMBERS</Text>
+                        <Text style={styles.memberCount}>{memberCount}</Text>
+                    </View>
+                    <TouchableOpacity onPress={() => setShowPhoneModal(true)} style={styles.settingsBtn}>
+                        <Ionicons name="settings" size={20} color={Colors.dark.textDim} />
+                    </TouchableOpacity>
                 </View>
             </BlurView>
+
+            {/* Leader Phone Modal */}
+            <LeaderPhoneModal
+                visible={showPhoneModal}
+                onClose={() => setShowPhoneModal(false)}
+            />
 
             {/* Bottom HUD */}
             <BlurView intensity={90} tint="dark" style={styles.hudContainer}>
@@ -285,6 +298,12 @@ const styles = StyleSheet.create({
     codeRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
     codeValue: { color: '#FFF', fontSize: 20, fontWeight: '800', fontFamily: 'System' },
     memberCount: { color: '#FFF', fontSize: 20, fontWeight: '800', marginTop: 4 },
+    topBarRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    settingsBtn: {
+        padding: 8,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: Layout.radius.s
+    },
 
     hudContainer: {
         position: 'absolute',

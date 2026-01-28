@@ -5,7 +5,8 @@ import {
     updateLocation,
     getTripLocations,
     relayLocation,
-    getTripInfo
+    getTripInfo,
+    getUserTripHistory
 } from '../controllers/TripController';
 
 const router = Router();
@@ -14,6 +15,9 @@ const router = Router();
 router.post('/create', createTrip);
 router.post('/join', joinTrip);
 router.get('/:code', getTripInfo);
+
+// Trip History
+router.get('/history/:userId', getUserTripHistory);
 
 // Location endpoints (for HTTP polling fallback)
 router.post('/:code/location', updateLocation);

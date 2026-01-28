@@ -205,3 +205,38 @@ export const getTripInfo = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to get trip info' });
     }
 };
+
+/**
+ * Get user's trip history
+ */
+export const getUserTripHistory = async (req: Request, res: Response) => {
+    try {
+        const { userId } = req.params;
+
+        if (!userId) {
+            res.status(400).json({ error: 'userId is required' });
+            return;
+        }
+
+        // Find all trips where user was a participant
+        const trips = await Trip.find({ participants: userId })
+            .sort({ createdAt: -1 })
+            .limit(20);
+
+        const result = trips.map(trip => ({
+            tripId: trip._id,
+            code: trip.code,
+            hostId: trip.hostId,
+            role: trip.hostId === userId ? 'host' : 'guest',
+            participantCount: trip.participants.length,
+            status: trip.status,
+            createdAt: trip.createdAt,
+        }));
+
+        res.status(200).json(result);
+    } catch (error) {
+        console.error('Get Trip History Error:', error);
+        res.status(500).json({ error: 'Failed to get trip history' });
+    }
+};
+
