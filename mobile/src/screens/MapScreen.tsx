@@ -13,6 +13,7 @@ import { CarMarker } from '../components/CarMarker';
 import { LeaderPhoneModal } from '../components/LeaderPhoneModal';
 import { mqttClientService } from '../services/MQTTClientService';
 import { SMSHandler } from '../services/SMSHandler';
+import { nativeSMSBridge } from '../services/NativeSMSBridge';
 import { Colors, Layout } from '../../constants/theme';
 
 // Initialize Mapbox
@@ -50,7 +51,7 @@ export const MapScreen = ({ navigation }: any) => {
         const init = async () => {
             const hasPermission = await startTracking();
             if (hasPermission && code && userId) {
-                // BUG FIX: Connect to MQTT immediately
+                // Connect to MQTT
                 mqttClientService.connect(code, userId, (data) => {
                     updatePeerLocation({
                         id: data.userId,
@@ -58,11 +59,16 @@ export const MapScreen = ({ navigation }: any) => {
                         longitude: data.longitude,
                         heading: data.heading,
                         speed: data.speed,
-                        role: 'peer', // Default to peer, updated if leader
+                        role: 'peer',
                         status: data.status,
                         lastUpdate: Date.now(),
                     });
                 });
+
+                // Initialize SMS Bridge for Leaders
+                if (role === 'host') {
+                    nativeSMSBridge.initialize(code, userId);
+                }
             }
         };
         init();
@@ -70,8 +76,19 @@ export const MapScreen = ({ navigation }: any) => {
         return () => {
             stopTracking();
             mqttClientService.disconnect();
+            nativeSMSBridge.stop();
         };
     }, []);
+
+    // Update SMS Bridge with leader's location for auto-reply
+    useEffect(() => {
+        if (myLocation && role === 'host') {
+            nativeSMSBridge.updateLeaderLocation(
+                myLocation.coords.latitude,
+                myLocation.coords.longitude
+            );
+        }
+    }, [myLocation, role]);
 
     // 2. Broadcast My Location
     useEffect(() => {

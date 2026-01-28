@@ -31,8 +31,12 @@
         "ACCESS_COARSE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
         "SEND_SMS",
+        "RECEIVE_SMS",
+        "READ_SMS",
         "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECEIVE_SMS",
+        "android.permission.READ_SMS"
       ]
     },
     "web": {
@@ -63,7 +67,8 @@
         {
           "RNMapboxMapsDownloadToken": "RNMAPBOX_MAPS_DOWNLOAD_TOKEN"
         }
-      ]
+      ],
+      "expo-dev-client"
     ],
     "experiments": {
       "typedRoutes": true,
